@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المتجر — VELOCE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span></a>
+    <nav class="main-nav">
+      <a href="index.html" data-transition>الرئيسية</a>
+      <a href="shop.html" data-transition class="active">المتجر</a>
+      <a href="shop.html?cat=training" data-transition>تدريب</a>
+      <a href="shop.html?cat=running" data-transition>جري</a>
+      <a href="shop.html?cat=football" data-transition>كرة قدم</a>
+    </nav>
+    <div class="header-actions">
+      <a href="login.html" data-transition class="icon-btn" title="حسابي">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5Z" fill="currentColor"/></svg>
+      </a>
+      <button class="icon-btn" onclick="openCartDrawer()" title="السلة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Zm0 0L5 3H2m6 18a1 1 0 100-2 1 1 0 000 2Zm10 0a1 1 0 100-2 1 1 0 000 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="shop-header">
+  <div class="wrap">
+    <h1>المتجر</h1>
+    <p id="shop-subtitle">كل مجموعات VELOCE في مكان واحد.</p>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="shop-layout">
+    <aside class="filters">
+      <div class="filter-group">
+        <h3>التصنيف</h3>
+        <div id="cat-filters"></div>
+      </div>
+      <div class="filter-group">
+        <h3>الترتيب</h3>
+        <select id="sort-select" class="filter-select" style="width:100%;padding:10px;border:2px solid var(--ink);">
+          <option value="new">الأحدث</option>
+          <option value="price-asc">السعر: من الأقل للأعلى</option>
+          <option value="price-desc">السعر: من الأعلى للأقل</option>
+        </select>
+      </div>
+    </aside>
+    <main>
+      <div class="product-grid" id="product-grid">
+        <p>جارِ تحميل المنتجات...</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div><strong>VELOCE</strong><br>ملابس رياضية للأداء والحركة.</div>
+    <div>© 2026 VELOCE. جميع الحقوق محفوظة.</div>
+  </div>
+</footer>
+
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartDrawer()"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h3>سلة المشتريات</h3>
+    <button class="icon-btn" onclick="closeCartDrawer()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>الإجمالي</span><span id="cart-total-amount">0</span></div>
+    <a href="checkout.html" data-transition class="btn btn-cobalt btn-block">إتمام الشراء</a>
+  </div>
+</aside>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/cart.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+let activeCat = params.get("cat") || "all";
+let sortMode = "new";
+let categories = [];
+
+async function loadCategories() {
+  const { data } = await supabaseClient.from("categories").select("*").order("name");
+  categories = data || [];
+  const wrap = document.getElementById("cat-filters");
+  wrap.innerHTML = [{ slug: "all", name: "كل المنتجات" }, ...categories]
+    .map(
+      (c) => `
+      <label class="filter-option">
+        <input type="radio" name="cat" value="${c.slug}" ${activeCat === c.slug ? "checked" : ""}>
+        ${c.name}
+      </label>`
+    )
+    .join("");
+  wrap.querySelectorAll("input").forEach((input) => {
+    input.addEventListener("change", (e) => {
+      activeCat = e.target.value;
+      loadProducts();
+    });
+  });
+}
+
+async function loadProducts() {
+  const grid = document.getElementById("product-grid");
+  const subtitle = document.getElementById("shop-subtitle");
+  grid.innerHTML = "<p>جارِ تحميل المنتجات...</p>";
+
+  let query = supabaseClient.from("products").select("*, categories(name, slug)");
+
+  if (activeCat !== "all") {
+    const cat = categories.find((c) => c.slug === activeCat);
+    if (cat) query = query.eq("category_id", cat.id);
+  }
+
+  if (sortMode === "price-asc") query = query.order("price", { ascending: true });
+  else if (sortMode === "price-desc") query = query.order("price", { ascending: false });
+  else query = query.order("created_at", { ascending: false });
+
+  const { data, error } = await query;
+
+  if (activeCat !== "all") {
+    const cat = categories.find((c) => c.slug === activeCat);
+    subtitle.textContent = cat ? `تصفح مجموعة ${cat.name}` : "كل مجموعات VELOCE في مكان واحد.";
+  } else {
+    subtitle.textContent = "كل مجموعات VELOCE في مكان واحد.";
+  }
+
+  if (error || !data || data.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><h3>لا توجد منتجات</h3><p>جرّب تصنيفاً آخر.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = data
+    .map(
+      (p) => `
+    <a href="product.html?slug=${p.slug}" data-transition class="product-card">
+      <div class="product-thumb">
+        ${p.compare_at_price ? `<span class="badge-sale">تخفيض</span>` : ""}
+        <img src="${p.image_url}" alt="${p.name}" loading="lazy">
+      </div>
+      <div class="product-info">
+        <span class="product-cat">${p.categories?.name || ""}</span>
+        <h3 class="product-name">${p.name}</h3>
+        <div class="product-price">
+          <span class="price-now">${formatPrice(p.price)}</span>
+          ${p.compare_at_price ? `<span class="price-old">${formatPrice(p.compare_at_price)}</span>` : ""}
+        </div>
+      </div>
+    </a>`
+    )
+    .join("");
+}
+
+document.getElementById("sort-select").addEventListener("change", (e) => {
+  sortMode = e.target.value;
+  loadProducts();
+});
+
+(async function init() {
+  await loadCategories();
+  await loadProducts();
+})();
+</script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>

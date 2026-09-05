@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول — VELOCE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span></a>
+    <nav class="main-nav">
+      <a href="index.html" data-transition>الرئيسية</a>
+      <a href="shop.html" data-transition>المتجر</a>
+    </nav>
+    <div class="header-actions"></div>
+  </div>
+</header>
+
+<div class="auth-shell">
+  <div class="auth-form-wrap">
+    <form class="auth-form" id="login-form">
+      <h1>أهلاً بعودتك</h1>
+      <p class="sub">سجّل دخولك لمتابعة طلباتك والاستفادة من عروض VELOCE.</p>
+
+      <div class="form-msg" id="form-msg"></div>
+
+      <div class="field">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn btn-cobalt btn-block" id="login-btn">تسجيل الدخول</button>
+
+      <p class="auth-switch">ليس لديك حساب؟ <a href="register.html" data-transition>أنشئ حساباً جديداً</a></p>
+    </form>
+  </div>
+  <div class="auth-visual">
+    <canvas id="auth-canvas"></canvas>
+    <div class="caption">
+      <h2>حساب واحد. كل تجربتك.</h2>
+      <p>تابع طلباتك، واحفظ مقاساتك المفضلة، وكن أول من يعرف عن الإصدارات الجديدة.</p>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/three-auth.js"></script>
+<script>
+function showMsg(text, type) {
+  const el = document.getElementById("form-msg");
+  el.textContent = text;
+  el.className = `form-msg show ${type}`;
+}
+
+(async function redirectIfLoggedIn() {
+  const user = await getCurrentUser();
+  if (user) {
+    const admin = await isCurrentUserAdmin();
+    window.location.href = admin ? "admin.html" : "index.html";
+  }
+})();
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("login-btn");
+  btn.disabled = true;
+  btn.textContent = "جارِ الدخول...";
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  btn.disabled = false;
+  btn.textContent = "تسجيل الدخول";
+
+  if (error) {
+    showMsg("بيانات الدخول غير صحيحة. تأكد من البريد وكلمة المرور.", "error");
+    return;
+  }
+
+  const admin = await isCurrentUserAdmin();
+  sessionStorage.setItem("veloce_transition_in", "1");
+  window.location.href = admin ? "admin.html" : "index.html";
+});
+</script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم الأدمن — VELOCE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span> <span style="font-size:12px;color:var(--ink-soft);font-weight:700;">/ أدمن</span></a>
+    <nav class="main-nav"></nav>
+    <div class="header-actions">
+      <a href="index.html" data-transition class="btn btn-outline" style="padding:9px 18px;font-size:13px;">عرض المتجر</a>
+      <button class="btn btn-outline" style="padding:9px 18px;font-size:13px;" id="logout-btn">تسجيل الخروج</button>
+    </div>
+  </div>
+</header>
+
+<div id="admin-gate" style="display:none;" class="gate">
+  <h1>هذه الصفحة مخصصة للأدمن فقط</h1>
+  <p>سجّل الدخول بحساب لديه صلاحية الأدمن للوصول إلى لوحة التحكم.</p>
+  <a href="login.html" data-transition class="btn btn-cobalt">تسجيل الدخول</a>
+</div>
+
+<div id="admin-app" style="display:none;">
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <a href="#" class="active">المنتجات</a>
+      <a href="#" id="nav-orders">الطلبات</a>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-head">
+        <h1>إدارة المنتجات</h1>
+        <button class="btn btn-cobalt" id="add-product-btn">+ إضافة منتج</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="stat-products">—</div><div class="label">إجمالي المنتجات</div></div>
+        <div class="stat-card"><div class="num" id="stat-orders">—</div><div class="label">إجمالي الطلبات</div></div>
+        <div class="stat-card"><div class="num" id="stat-pending">—</div><div class="label">طلبات قيد الانتظار</div></div>
+        <div class="stat-card"><div class="num" id="stat-revenue">—</div><div class="label">إجمالي المبيعات</div></div>
+      </div>
+
+      <div id="products-panel">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>مميز</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr><td colspan="7">جارِ التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="orders-panel" style="display:none;">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>رقم الطلب</th><th>العميل</th><th>الهاتف</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>تحديث</th></tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="7">جارِ التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal-box">
+    <h2 id="modal-title">إضافة منتج</h2>
+    <div class="form-msg" id="modal-msg"></div>
+    <form id="product-form">
+      <input type="hidden" id="p-id">
+      <div class="field"><label>اسم المنتج</label><input type="text" id="p-name" required></div>
+      <div class="field"><label>الرابط المختصر (slug)</label><input type="text" id="p-slug" required placeholder="example-product-name"></div>
+      <div class="field"><label>الوصف</label><textarea id="p-description" rows="3"></textarea></div>
+      <div class="two-col">
+        <div class="field"><label>السعر</label><input type="number" id="p-price" step="0.01" required></div>
+        <div class="field"><label>سعر قبل الخصم (اختياري)</label><input type="number" id="p-compare" step="0.01"></div>
+      </div>
+      <div class="field">
+        <label>التصنيف</label>
+        <select id="p-category" required></select>
+      </div>
+      <div class="field"><label>رابط الصورة</label><input type="url" id="p-image" required placeholder="https://..."></div>
+      <div class="two-col">
+        <div class="field"><label>المقاسات (مفصولة بفاصلة)</label><input type="text" id="p-sizes" placeholder="S,M,L,XL"></div>
+        <div class="field"><label>الألوان (مفصولة بفاصلة)</label><input type="text" id="p-colors" placeholder="أسود,أبيض"></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>المخزون</label><input type="number" id="p-stock" value="100"></div>
+        <div class="field">
+          <label>منتج مميز؟</label>
+          <select id="p-featured"><option value="false">لا</option><option value="true">نعم</option></select>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:10px;">
+        <button type="button" class="btn btn-outline btn-block" id="modal-cancel">إلغاء</button>
+        <button type="submit" class="btn btn-cobalt btn-block" id="modal-save">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>

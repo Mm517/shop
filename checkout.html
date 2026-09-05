@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إتمام الشراء — VELOCE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span></a>
+    <nav class="main-nav">
+      <a href="index.html" data-transition>الرئيسية</a>
+      <a href="shop.html" data-transition>المتجر</a>
+    </nav>
+    <div class="header-actions"></div>
+  </div>
+</header>
+
+<div class="wrap" style="padding:50px 0 100px;">
+  <div id="checkout-root" style="max-width:560px;margin:0 auto;">
+    <div class="center-note">جارِ التحقق من حسابك...</div>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/cart.js"></script>
+<script>
+async function initCheckout() {
+  const root = document.getElementById("checkout-root");
+  const user = await getCurrentUser();
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    root.innerHTML = `<div class="empty-state"><h3>السلة فارغة</h3><p>أضف منتجات قبل إتمام الشراء.</p><a href="shop.html" data-transition class="btn btn-cobalt" style="margin-top:16px;">تصفح المتجر</a></div>`;
+    return;
+  }
+
+  if (!user) {
+    root.innerHTML = `
+      <div class="empty-state">
+        <h3>سجّل الدخول لإتمام الطلب</h3>
+        <p>تحتاج لحساب حتى نتمكن من ربط الطلب بك ومتابعته.</p>
+        <a href="login.html" data-transition class="btn btn-cobalt" style="margin-top:16px;">تسجيل الدخول</a>
+      </div>`;
+    return;
+  }
+
+  const total = cartTotal();
+  root.innerHTML = `
+    <h1 style="font-size:28px;font-weight:900;margin-bottom:24px;">تفاصيل الشحن</h1>
+    <div class="form-msg" id="form-msg"></div>
+    <form id="checkout-form">
+      <div class="field">
+        <label>الاسم بالكامل</label>
+        <input type="text" id="ship-name" required>
+      </div>
+      <div class="field">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="ship-phone" required>
+      </div>
+      <div class="field">
+        <label>العنوان بالتفصيل</label>
+        <textarea id="ship-address" rows="3" required></textarea>
+      </div>
+      <div style="border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:16px 0; margin:24px 0; display:flex; justify-content:space-between; font-weight:900; font-size:18px;">
+        <span>إجمالي الطلب</span>
+        <span>${formatPrice(total)}</span>
+      </div>
+      <button type="submit" class="btn btn-cobalt btn-block" id="place-order-btn">تأكيد الطلب</button>
+    </form>
+  `;
+
+  document.getElementById("checkout-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("place-order-btn");
+    btn.disabled = true;
+    btn.textContent = "جارِ إرسال الطلب...";
+
+    const shipping_name = document.getElementById("ship-name").value.trim();
+    const shipping_phone = document.getElementById("ship-phone").value.trim();
+    const shipping_address = document.getElementById("ship-address").value.trim();
+
+    const { data: order, error: orderError } = await supabaseClient
+      .from("orders")
+      .insert({ user_id: user.id, total, shipping_name, shipping_phone, shipping_address })
+      .select()
+      .single();
+
+    if (orderError) {
+      document.getElementById("form-msg").className = "form-msg show error";
+      document.getElementById("form-msg").textContent = "تعذر إرسال الطلب. حاول مرة أخرى.";
+      btn.disabled = false;
+      btn.textContent = "تأكيد الطلب";
+      return;
+    }
+
+    const items = getCart().map((i) => ({
+      order_id: order.id,
+      product_id: i.product_id,
+      product_name: i.name,
+      price: i.price,
+      size: i.size,
+      color: i.color,
+      quantity: i.quantity,
+    }));
+
+    await supabaseClient.from("order_items").insert(items);
+
+    clearCart();
+    root.innerHTML = `
+      <div class="empty-state">
+        <h3>تم استلام طلبك بنجاح 🎉</h3>
+        <p>رقم الطلب: ${order.id.slice(0, 8)}<br>سنتواصل معك قريباً لتأكيد التوصيل.</p>
+        <a href="shop.html" data-transition class="btn btn-cobalt" style="margin-top:16px;">متابعة التسوق</a>
+      </div>`;
+  });
+}
+
+initCheckout();
+</script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELOCE — ملابس رياضية للأداء والحركة</title>
+<meta name="description" content="متجر VELOCE لملابس وإكسسوارات الرياضة: تدريب، جري، كرة قدم.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span></a>
+    <nav class="main-nav">
+      <a href="index.html" data-transition class="active">الرئيسية</a>
+      <a href="shop.html" data-transition>المتجر</a>
+      <a href="shop.html?cat=training" data-transition>تدريب</a>
+      <a href="shop.html?cat=running" data-transition>جري</a>
+      <a href="shop.html?cat=football" data-transition>كرة قدم</a>
+    </nav>
+    <div class="header-actions">
+      <a href="login.html" data-transition class="icon-btn" title="حسابي" id="account-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5Z" fill="currentColor"/></svg>
+      </a>
+      <button class="icon-btn" onclick="openCartDrawer()" title="السلة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Zm0 0L5 3H2m6 18a1 1 0 100-2 1 1 0 000 2Zm10 0a1 1 0 100-2 1 1 0 000 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-copy">
+    <div class="hero-tag">مجموعة الموسم الجديد</div>
+    <h1>خطوة أسرع.<br>أداء <em>بلا حدود</em>.</h1>
+    <p>ملابس وإكسسوارات رياضية مصممة لتتحرك معك في التدريب والجري وكرة القدم، بخامات تتنفس وتتحمل شدتك.</p>
+    <div class="hero-actions">
+      <a href="shop.html" data-transition class="btn btn-volt">تسوق الآن</a>
+      <a href="shop.html?cat=running" data-transition class="btn btn-outline" style="color:#fff;border-color:#fff;">مجموعة الجري</a>
+    </div>
+  </div>
+  <div class="hero-stage">
+    <canvas id="hero-canvas"></canvas>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>تسوق حسب النشاط</h2>
+      <a href="shop.html" data-transition class="see-all">عرض كل الأقسام ←</a>
+    </div>
+  </div>
+  <div class="cat-strip">
+    <a href="shop.html?cat=training" data-transition class="cat-card">
+      <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=700" alt="تدريب">
+      <span>تدريب</span>
+    </a>
+    <a href="shop.html?cat=running" data-transition class="cat-card">
+      <img src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=700" alt="جري">
+      <span>جري</span>
+    </a>
+    <a href="shop.html?cat=football" data-transition class="cat-card">
+      <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=700" alt="كرة قدم">
+      <span>كرة قدم</span>
+    </a>
+    <a href="shop.html?cat=accessories" data-transition class="cat-card">
+      <img src="https://images.unsplash.com/photo-1549049950-48d5887197a0?w=700" alt="إكسسوارات">
+      <span>إكسسوارات</span>
+    </a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>الأكثر طلباً</h2>
+      <a href="shop.html" data-transition class="see-all">عرض الكل ←</a>
+    </div>
+    <div class="product-grid" id="featured-grid">
+      <p>جارِ تحميل المنتجات...</p>
+    </div>
+  </div>
+</section>
+
+<section class="feature-strip">
+  <div class="feature-item">
+    <h3>شحن سريع</h3>
+    <p>توصيل خلال 2-4 أيام عمل لكل محافظات مصر.</p>
+  </div>
+  <div class="feature-item">
+    <h3>إرجاع خلال 14 يوم</h3>
+    <p>لو المقاس مش مناسب، استبدله بسهولة تامة.</p>
+  </div>
+  <div class="feature-item">
+    <h3>خامات مختبرة</h3>
+    <p>أقمشة تقنية مصممة لتحمل التدريب اليومي المكثف.</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div><strong>VELOCE</strong><br>ملابس رياضية للأداء والحركة.</div>
+    <div>© 2026 VELOCE. جميع الحقوق محفوظة.</div>
+  </div>
+</footer>
+
+<!-- Cart Drawer -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartDrawer()"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h3>سلة المشتريات</h3>
+    <button class="icon-btn" onclick="closeCartDrawer()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>الإجمالي</span><span id="cart-total-amount">0</span></div>
+    <a href="checkout.html" data-transition class="btn btn-cobalt btn-block">إتمام الشراء</a>
+  </div>
+</aside>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/three-hero.js"></script>
+<script>
+async function loadFeatured() {
+  const grid = document.getElementById("featured-grid");
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*, categories(name, slug)")
+    .eq("is_featured", true)
+    .limit(8);
+
+  if (error || !data || data.length === 0) {
+    grid.innerHTML = `<p>تعذر تحميل المنتجات حالياً.</p>`;
+    return;
+  }
+
+  grid.innerHTML = data.map(productCardHTML).join("");
+}
+
+function productCardHTML(p) {
+  const catName = p.categories?.name || "";
+  return `
+    <a href="product.html?slug=${p.slug}" data-transition class="product-card">
+      <div class="product-thumb">
+        ${p.compare_at_price ? `<span class="badge-sale">تخفيض</span>` : ""}
+        <img src="${p.image_url}" alt="${p.name}" loading="lazy">
+      </div>
+      <div class="product-info">
+        <span class="product-cat">${catName}</span>
+        <h3 class="product-name">${p.name}</h3>
+        <div class="product-price">
+          <span class="price-now">${formatPrice(p.price)}</span>
+          ${p.compare_at_price ? `<span class="price-old">${formatPrice(p.compare_at_price)}</span>` : ""}
+        </div>
+      </div>
+    </a>`;
+}
+
+loadFeatured();
+</script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>

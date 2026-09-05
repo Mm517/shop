@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تفاصيل المنتج — VELOCE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="page-transition-canvas"></canvas>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="index.html" data-transition class="logo">VELO<span>CE</span></a>
+    <nav class="main-nav">
+      <a href="index.html" data-transition>الرئيسية</a>
+      <a href="shop.html" data-transition>المتجر</a>
+    </nav>
+    <div class="header-actions">
+      <a href="login.html" data-transition class="icon-btn" title="حسابي">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5Z" fill="currentColor"/></svg>
+      </a>
+      <button class="icon-btn" onclick="openCartDrawer()" title="السلة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6Zm0 0L5 3H2m6 18a1 1 0 100-2 1 1 0 000 2Zm10 0a1 1 0 100-2 1 1 0 000 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="pd-root">
+  <div class="center-note">جارِ تحميل المنتج...</div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div><strong>VELOCE</strong><br>ملابس رياضية للأداء والحركة.</div>
+    <div>© 2026 VELOCE. جميع الحقوق محفوظة.</div>
+  </div>
+</footer>
+
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartDrawer()"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h3>سلة المشتريات</h3>
+    <button class="icon-btn" onclick="closeCartDrawer()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>الإجمالي</span><span id="cart-total-amount">0</span></div>
+    <a href="checkout.html" data-transition class="btn btn-cobalt btn-block">إتمام الشراء</a>
+  </div>
+</aside>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/cart.js"></script>
+<script>
+const slug = new URLSearchParams(location.search).get("slug");
+let currentProduct = null;
+let selectedSize = null;
+let selectedColor = null;
+let qty = 1;
+
+async function loadProduct() {
+  const root = document.getElementById("pd-root");
+  if (!slug) {
+    root.innerHTML = `<div class="empty-state"><h3>منتج غير موجود</h3></div>`;
+    return;
+  }
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*, categories(name)")
+    .eq("slug", slug)
+    .single();
+
+  if (error || !data) {
+    root.innerHTML = `<div class="empty-state"><h3>منتج غير موجود</h3><p>ربما تم حذفه أو الرابط غير صحيح.</p></div>`;
+    return;
+  }
+
+  currentProduct = data;
+  selectedSize = data.sizes?.[0] || null;
+  selectedColor = data.colors?.[0] || null;
+
+  root.innerHTML = `
+    <div class="pd-layout">
+      <div class="pd-image"><img src="${data.image_url}" alt="${data.name}"></div>
+      <div class="pd-info">
+        <span class="product-cat">${data.categories?.name || ""}</span>
+        <h1>${data.name}</h1>
+        <div class="product-price">
+          <span class="price-now">${formatPrice(data.price)}</span>
+          ${data.compare_at_price ? `<span class="price-old">${formatPrice(data.compare_at_price)}</span>` : ""}
+        </div>
+        <p class="pd-desc">${data.description || ""}</p>
+
+        ${data.sizes?.length ? `
+        <div class="option-group">
+          <h4>المقاس</h4>
+          <div id="size-options">
+            ${data.sizes.map((s) => `<button type="button" class="option-chip ${s === selectedSize ? "active" : ""}" data-size="${s}">${s}</button>`).join("")}
+          </div>
+        </div>` : ""}
+
+        ${data.colors?.length ? `
+        <div class="option-group">
+          <h4>اللون</h4>
+          <div id="color-options">
+            ${data.colors.map((c) => `<button type="button" class="option-chip ${c === selectedColor ? "active" : ""}" data-color="${c}">${c}</button>`).join("")}
+          </div>
+        </div>` : ""}
+
+        <div class="qty-row">
+          <div class="qty-control">
+            <button type="button" id="qty-minus">−</button>
+            <span id="qty-value">1</span>
+            <button type="button" id="qty-plus">+</button>
+          </div>
+        </div>
+
+        <button class="btn btn-cobalt btn-block" id="add-to-cart-btn">أضف إلى السلة</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll("#size-options .option-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedSize = btn.dataset.size;
+      document.querySelectorAll("#size-options .option-chip").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+  document.querySelectorAll("#color-options .option-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedColor = btn.dataset.color;
+      document.querySelectorAll("#color-options .option-chip").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+  document.getElementById("qty-minus").addEventListener("click", () => {
+    qty = Math.max(1, qty - 1);
+    document.getElementById("qty-value").textContent = qty;
+  });
+  document.getElementById("qty-plus").addEventListener("click", () => {
+    qty += 1;
+    document.getElementById("qty-value").textContent = qty;
+  });
+  document.getElementById("add-to-cart-btn").addEventListener("click", () => {
+    addToCart({
+      product_id: currentProduct.id,
+      name: currentProduct.name,
+      price: currentProduct.price,
+      image_url: currentProduct.image_url,
+      size: selectedSize,
+      color: selectedColor,
+      quantity: qty,
+    });
+    openCartDrawer();
+  });
+}
+
+loadProduct();
+</script>
+<script src="js/three-transition.js"></script>
+</body>
+</html>
