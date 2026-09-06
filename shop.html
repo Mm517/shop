@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>المتجر — VELOCE</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -83,10 +83,10 @@
   </div>
 </aside>
 
-<script src="vendor/three.min.js"></script>
-<script src="vendor/supabase.js"></script>
-<script src="js/supabase-client.js"></script>
-<script src="js/cart.js"></script>
+<script src="three.min.js"></script>
+<script src="supabase.js"></script>
+<script src="supabase-client.js"></script>
+<script src="cart.js"></script>
 <script>
 const params = new URLSearchParams(location.search);
 let activeCat = params.get("cat") || "all";
@@ -175,6 +175,6 @@ document.getElementById("sort-select").addEventListener("change", (e) => {
   await loadProducts();
 })();
 </script>
-<script src="js/three-transition.js"></script>
+<script src="three-transition.js"></script>
 </body>
 </html>
